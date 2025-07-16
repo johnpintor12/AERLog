@@ -534,7 +534,7 @@
         document.addEventListener('click', closeAllSelects);
 
         // --- Form Submission & ID Logic ---
-        const SCRIPT_URL = "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE";
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyY4lFIkrW0zyNSKivWViv8fqBTLN0vAvYLdBleoMCptiFXffQKwDEefcbiol5aKU49/exec";
         const form = document.getElementById('complaintLogForm');
         const complaintIdInput = document.getElementById('complaintId');
         const successMessage = document.getElementById('success-message');
@@ -544,7 +544,7 @@
         const submitSpinner = document.getElementById('submit-spinner');
 
         function loadNextComplaintId() {
-            if (SCRIPT_URL === "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE") {
+            if (SCRIPT_URL === "https://script.google.com/macros/s/AKfycbyY4lFIkrW0zyNSKivWViv8fqBTLN0vAvYLdBleoMCptiFXffQKwDEefcbiol5aKU49/exec") {
                 complaintIdInput.value = "Configure Script URL first";
                 return;
             }
