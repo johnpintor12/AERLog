@@ -534,7 +534,7 @@
         document.addEventListener('click', closeAllSelects);
 
         // --- Form Submission & ID Logic ---
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyY4lFIkrW0zyNSKivWViv8fqBTLN0vAvYLdBleoMCptiFXffQKwDEefcbiol5aKU49/exec";
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyY4lFlkrw0zyNSKIWvBiv8fqBTLNbAvYLDbLeoMCptIFXffQKwDEefcbioI5akU49/exec";
         const form = document.getElementById('complaintLogForm');
         const complaintIdInput = document.getElementById('complaintId');
         const successMessage = document.getElementById('success-message');
@@ -544,23 +544,25 @@
         const submitSpinner = document.getElementById('submit-spinner');
 
         function loadNextComplaintId() {
-            if (SCRIPT_URL === "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE") {
-                complaintIdInput.value = "Configure Script URL first";
-                return;
-            }
             // This function in your Google Apps Script will return the next ID.
             fetch(SCRIPT_URL + "?action=getNextId")
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     if(data.nextId) {
                         complaintIdInput.value = data.nextId;
                     } else {
-                        complaintIdInput.value = "Error loading ID";
+                        throw new Error('Invalid data format from server');
                     }
                 })
                 .catch(err => {
                     console.error("Error fetching next ID:", err);
                     complaintIdInput.value = "Error loading ID";
+                    showError("Could not load the next Complaint ID. Please check the script deployment and CORS settings.");
                 });
         }
 
@@ -577,21 +579,18 @@
             const data = {};
             formData.forEach((value, key) => (data[key] = value));
 
-            if (SCRIPT_URL === "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE") {
-                showError("Configuration Error: Please set your Google Apps Script Web App URL in the HTML file to connect to Google Sheets.");
-                submitButton.disabled = false;
-                submitText.style.display = 'inline';
-                submitSpinner.style.display = 'none';
-                return;
-            }
-
             fetch(SCRIPT_URL, {
                 method: 'POST',
                 mode: 'cors',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify(data)
             })
-            .then(response => response.json())
+            .then(response => {
+                 if (!response.ok) {
+                    throw new Error(`Network error: ${response.statusText}`);
+                }
+                return response.json();
+            })
             .then(res => {
                 if (res.result === "success") {
                     form.reset();
@@ -606,10 +605,10 @@
                     loadNextComplaintId(); // Fetch the next ID for the new form
                     window.scrollTo(0, document.body.scrollHeight);
                 } else {
-                    throw new Error(res.message || 'An unknown error occurred.');
+                    throw new Error(res.message || 'An unknown error occurred during submission.');
                 }
             })
-            .catch(err => showError('Error: ' + err.message))
+            .catch(err => showError('Submission Error: ' + err.message))
             .finally(() => {
                 submitButton.disabled = false;
                 submitText.style.display = 'inline';
