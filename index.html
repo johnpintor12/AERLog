@@ -544,7 +544,7 @@
         const submitSpinner = document.getElementById('submit-spinner');
 
         function loadNextComplaintId() {
-            if (SCRIPT_URL === "https://script.google.com/macros/s/AKfycbyY4lFIkrW0zyNSKivWViv8fqBTLN0vAvYLdBleoMCptiFXffQKwDEefcbiol5aKU49/exec") {
+            if (SCRIPT_URL === "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE") {
                 complaintIdInput.value = "Configure Script URL first";
                 return;
             }
@@ -577,7 +577,7 @@
             const data = {};
             formData.forEach((value, key) => (data[key] = value));
 
-            if (SCRIPT_URL === "https://script.google.com/macros/s/AKfycbyY4lFIkrW0zyNSKivWViv8fqBTLN0vAvYLdBleoMCptiFXffQKwDEefcbiol5aKU49/exec") {
+            if (SCRIPT_URL === "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE") {
                 showError("Configuration Error: Please set your Google Apps Script Web App URL in the HTML file to connect to Google Sheets.");
                 submitButton.disabled = false;
                 submitText.style.display = 'inline';
