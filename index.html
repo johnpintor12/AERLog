@@ -15,6 +15,8 @@
             --text-primary: #1e293b; /* Slate 800 */
             --text-secondary: #64748b; /* Slate 500 */
             --border-color: #e2e8f0; /* Slate 200 */
+            --success-color: #10b981; /* Emerald */
+            --error-color: #ef4444; /* Red */
         }
         body {
             font-family: 'Inter', sans-serif;
@@ -104,11 +106,30 @@
             margin-bottom: 1.5rem;
         }
         
-        #success-message, #error-message {
-            display: none; padding: 1rem; border-radius: 0.5rem; margin-top: 1.5rem;
+        /* --- Toast Notification Styles --- */
+        #toast-notification {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translate(-50%, 10px);
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+            color: white;
+            font-weight: 500;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, transform 0.3s, visibility 0.3s;
+            z-index: 1000;
         }
-        #success-message { background-color: #D1FAE5; color: #065F46; }
-        #error-message { background-color: #FEE2E2; color: #991B1B; }
+        #toast-notification.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, 0);
+        }
+        #toast-notification.success { background-color: var(--success-color); }
+        #toast-notification.error { background-color: var(--error-color); }
+
 
         /* --- Custom Select Dropdown Styles --- */
         .custom-select-wrapper { position: relative; margin-top: 0.5rem; }
@@ -159,6 +180,9 @@
     </style>
 </head>
 <body>
+
+    <!-- Toast Notification Element -->
+    <div id="toast-notification"></div>
 
     <div class="form-wrapper">
         <div class="text-center mb-10">
@@ -461,8 +485,6 @@
             </div>
         </form>
         
-        <div id="success-message">Record added successfully! The form has been reset.</div>
-        <div id="error-message"></div>
     </div>
 
     <script>
@@ -537,11 +559,25 @@
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyY4lFlkrw0zyNSKIWvBiv8fqBTLNbAvYLDbLeoMCptIFXffQKwDEefcbioI5akU49/exec";
         const form = document.getElementById('complaintLogForm');
         const complaintIdInput = document.getElementById('complaintId');
-        const successMessage = document.getElementById('success-message');
-        const errorMessage = document.getElementById('error-message');
+        const toast = document.getElementById('toast-notification');
         const submitButton = form.querySelector('.submit-btn');
         const submitText = document.getElementById('submit-text');
         const submitSpinner = document.getElementById('submit-spinner');
+        let toastTimeout;
+
+        function showToast(message, type = 'error') {
+            clearTimeout(toastTimeout);
+            toast.textContent = message;
+            toast.className = 'show';
+            if (type === 'success') {
+                toast.classList.add('success');
+            } else {
+                toast.classList.add('error');
+            }
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 4000);
+        }
 
         function loadNextComplaintId() {
             // This function in your Google Apps Script will return the next ID.
@@ -562,7 +598,7 @@
                 .catch(err => {
                     console.error("Error fetching next ID:", err);
                     complaintIdInput.value = "Error loading ID";
-                    showError("Could not load the next Complaint ID. Please check the script deployment and CORS settings.");
+                    showToast("Could not load the next Complaint ID. Please check the script deployment and CORS settings.");
                 });
         }
 
@@ -572,8 +608,6 @@
             submitButton.disabled = true;
             submitText.style.display = 'none';
             submitSpinner.style.display = 'inline';
-            successMessage.style.display = 'none';
-            errorMessage.style.display = 'none';
 
             const formData = new FormData(form);
             const data = {};
@@ -601,14 +635,13 @@
                         text.classList.add('custom-select-placeholder');
                         wrapper.querySelectorAll('.custom-option').forEach(opt => opt.classList.remove('selected'));
                     });
-                    successMessage.style.display = 'block';
+                    showToast("Record added successfully!", 'success');
                     loadNextComplaintId(); // Fetch the next ID for the new form
-                    window.scrollTo(0, document.body.scrollHeight);
                 } else {
                     throw new Error(res.message || 'An unknown error occurred during submission.');
                 }
             })
-            .catch(err => showError('Submission Error: ' + err.message))
+            .catch(err => showToast('Submission Error: ' + err.message))
             .finally(() => {
                 submitButton.disabled = false;
                 submitText.style.display = 'inline';
@@ -616,11 +649,6 @@
             });
         });
         
-        function showError(message) {
-            errorMessage.textContent = message;
-            errorMessage.style.display = 'block';
-            window.scrollTo(0, document.body.scrollHeight);
-        }
     </script>
 </body>
 </html>
