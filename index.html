@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complaint Log - Data Entry</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4f46e5; /* Indigo */
+            --primary-color-light: #e0e7ff;
+            --background-color: #f8fafc; /* Slate 50 */
+            --card-background: #ffffff;
+            --text-primary: #1e293b; /* Slate 800 */
+            --text-secondary: #64748b; /* Slate 500 */
+            --border-color: #e2e8f0; /* Slate 200 */
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-primary);
+        }
+        .form-wrapper {
+            max-width: 1200px;
+            margin: 3rem auto;
+            padding: 0 1.5rem;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(1, 1fr);
+            gap: 1.5rem;
+        }
+        @media (min-width: 768px) { .form-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (min-width: 1024px) { .form-grid { grid-template-columns: repeat(3, 1fr); } }
+        
+        label {
+            font-weight: 500;
+            font-size: 0.875rem;
+            color: var(--text-primary);
+        }
+        .input-group { position: relative; margin-top: 0.5rem; }
+        .input-icon {
+            position: absolute;
+            left: 0.875rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            pointer-events: none;
+        }
+        input[type="text"], input[type="date"], input[type="email"], input[type="tel"], textarea {
+            width: 100%;
+            padding: 0.875rem;
+            padding-left: 2.75rem; /* Space for icon */
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            background-color: #fff;
+        }
+        input[readonly] {
+            background-color: #f3f4f6; /* Gray 100 */
+            cursor: not-allowed;
+            color: var(--text-secondary);
+        }
+        input[type="date"] { padding-left: 0.875rem; } /* No icon for date */
+        textarea { padding: 0.875rem; } /* No icon for textarea */
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px var(--primary-color-light);
+        }
+        .full-width { grid-column: 1 / -1; }
+        
+        .submit-btn {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.85rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
+        }
+        .submit-btn:hover { 
+            background-color: #4338ca; /* Darker Indigo */
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+
+        .section-card {
+            background-color: var(--card-background);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px 0 rgba(0,0,0,0.07), 0 1px 2px -1px rgba(0,0,0,0.07);
+            border: 1px solid var(--border-color);
+        }
+        .section-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+        }
+        
+        #success-message, #error-message {
+            display: none; padding: 1rem; border-radius: 0.5rem; margin-top: 1.5rem;
+        }
+        #success-message { background-color: #D1FAE5; color: #065F46; }
+        #error-message { background-color: #FEE2E2; color: #991B1B; }
+
+        /* --- Custom Select Dropdown Styles --- */
+        .custom-select-wrapper { position: relative; margin-top: 0.5rem; }
+        .custom-select-trigger {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.875rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            background-color: #fff;
+            cursor: pointer;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .custom-select-wrapper.open .custom-select-trigger {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px var(--primary-color-light);
+        }
+        .custom-select-placeholder { color: #9CA3AF; }
+        .custom-options {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            right: 0;
+            background-color: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+        }
+        .custom-select-wrapper.open .custom-options { display: block; }
+        .custom-option {
+            padding: 0.75rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .custom-option:hover { background-color: #f3f4f6; }
+        .custom-option.selected { background-color: var(--primary-color-light); font-weight: 500; color: var(--primary-color); }
+        .custom-select-arrow {
+            width: 1rem; height: 1rem; color: #6B7280;
+            transition: transform 0.2s;
+        }
+        .custom-select-wrapper.open .custom-select-arrow { transform: rotate(180deg); }
+        select { display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="form-wrapper">
+        <div class="text-center mb-10">
+            <h1 class="text-4xl font-bold text-gray-800">Complaint & Adverse Event Log</h1>
+            <p class="text-gray-500 mt-2 text-lg">A streamlined interface for accurate data entry.</p>
+        </div>
+
+        <form id="complaintLogForm" class="space-y-8">
+            
+            <!-- Section: Initial Intake -->
+            <div class="section-card">
+                <h2 class="section-title">Initial Intake</h2>
+                <div class="form-grid">
+                    <div>
+                        <label for="complaintId">Complaint ID (Auto-Generated)</label>
+                        <div class="input-group">
+                            <span class="input-icon"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" /></svg></span>
+                            <input type="text" id="complaintId" name="complaintId" placeholder="Loading next ID..." readonly>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="dateReceived">Date Received</label>
+                        <div class="input-group">
+                            <input type="date" id="dateReceived" name="dateReceived" required>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="formOfContact">Form of Contact</label>
+                        <div class="custom-select-wrapper">
+                            <select id="formOfContact" name="formOfContact">
+                                <option value="">Select...</option> <option value="Email">Email</option> <option value="Social Media">Social Media</option> <option value="Mail">Mail</option> <option value="Amazon">Amazon</option> <option value="Retailer">Retailer</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="initialIntakeBy">Initial Intake Completed By</label>
+                        <div class="input-group">
+                             <span class="input-icon"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" /></svg></span>
+                            <input type="text" id="initialIntakeBy" name="initialIntakeBy" placeholder="Your Name">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="orderNumber">Order Number</label>
+                         <div class="input-group">
+                            <span class="input-icon"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" /></svg></span>
+                            <input type="text" id="orderNumber" name="orderNumber" placeholder="123-4567890">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="classification">Classification</label>
+                        <div class="custom-select-wrapper">
+                            <select id="classification" name="classification">
+                                <option value="">Select...</option> <option value="Adverse Event">Adverse Event</option> <option value="Product Complaint">Product Complaint</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- All other sections follow the same card pattern -->
+            <!-- Customer Information -->
+            <div class="section-card">
+                <h2 class="section-title">Customer Information</h2>
+                <div class="form-grid">
+                    <div>
+                        <label for="customerName">Customer Name</label>
+                        <div class="input-group">
+                            <span class="input-icon"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" /></svg></span>
+                            <input type="text" id="customerName" name="customerName" placeholder="John Doe" required>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="customerPhone">Customer Phone</label>
+                        <div class="input-group">
+                            <span class="input-icon"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" /></svg></span>
+                            <input type="tel" id="customerPhone" name="customerPhone" placeholder="(555) 123-4567">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="customerEmail">Customer Email</label>
+                        <div class="input-group">
+                            <span class="input-icon"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" /><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" /></svg></span>
+                            <input type="email" id="customerEmail" name="customerEmail" placeholder="john.doe@example.com">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product & Event Details -->
+            <div class="section-card">
+                <h2 class="section-title">Product & Event Details</h2>
+                <div class="form-grid">
+                    <div>
+                        <label for="productName">Product Name</label>
+                        <div class="input-group">
+                           <span class="input-icon"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v2a2 2 0 01-2 2H7a2 2 0 01-2-2V4zM5 12a2 2 0 012-2h6a2 2 0 012 2v2a2 2 0 01-2 2H7a2 2 0 01-2-2v-2z" /></svg></span>
+                           <input type="text" id="productName" name="productName">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="lotNumber">Lot Number</label>
+                        <div class="input-group">
+                            <span class="input-icon"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5 4a3 3 0 00-3 3v6a3 3 0 003 3h10a3 3 0 003-3V7a3 3 0 00-3-3H5zm-1 9v-1h5v2H5a1 1 0 01-1-1zm7 1h4a1 1 0 001-1v-1h-5v2zM9 8H4v2h5V8z" clip-rule="evenodd" /></svg></span>
+                            <input type="text" id="lotNumber" name="lotNumber">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="dateOfUse">Date of Use</label>
+                        <div class="input-group">
+                           <input type="date" id="dateOfUse" name="dateOfUse">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="dateOfAdverseEvent">Date of Adverse Event</label>
+                        <div class="input-group">
+                           <input type="date" id="dateOfAdverseEvent" name="dateOfAdverseEvent">
+                        </div>
+                    </div>
+                    <div class="full-width">
+                        <label for="natureOfComplaint">Nature of Complaint</label>
+                        <div class="custom-select-wrapper">
+                            <select id="natureOfComplaint" name="natureOfComplaint">
+                                <option value="">Select...</option> <option value="Headache">Headache</option> <option value="Dizziness">Dizziness</option> <option value="Nausea">Nausea</option> <option value="Vomiting">Vomiting</option> <option value="Digestive Issues">Digestive Issues</option> <option value="Diarrhea">Diarrhea</option> <option value="Allergic Reaction">Allergic Reaction</option> <option value="Rash/Hives">Rash/Hives</option> <option value="Defective Product">Defective Product</option> <option value="Packaging Issue">Packaging Issue</option> <option value="Missing Tablet">Missing Tablet</option> <option value="Taste">Taste</option> <option value="Odor">Odor</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="full-width">
+                        <label for="descriptionOfEvent">Description of Event</label>
+                        <div class="input-group">
+                           <textarea id="descriptionOfEvent" name="descriptionOfEvent" rows="5" placeholder="Detailed description of what occurred..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Health & Reporter Information -->
+            <div class="section-card">
+                <h2 class="section-title">Health & Reporter Information</h2>
+                 <div class="form-grid">
+                    <div>
+                        <label for="productInPossession">Product in Possession?</label>
+                        <div class="custom-select-wrapper">
+                            <select id="productInPossession" name="productInPossession">
+                                <option value="">Select...</option> <option value="Y">Yes</option> <option value="N">No</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="medicalAttentionSought">Medical Attention Sought?</label>
+                        <div class="custom-select-wrapper">
+                            <select id="medicalAttentionSought" name="medicalAttentionSought">
+                                <option value="">Select...</option> <option value="Y">Yes</option> <option value="N">No</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="hospitalization">Hospitalization?</label>
+                        <div class="custom-select-wrapper">
+                            <select id="hospitalization" name="hospitalization">
+                                <option value="">Select...</option> <option value="Y">Yes</option> <option value="N">No</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="healthcareProviderName">Healthcare Provider Name</label>
+                         <div class="input-group">
+                            <span class="input-icon"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" /></svg></span>
+                            <input type="text" id="healthcareProviderName" name="healthcareProviderName">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="reporterRelationship">Reporter Relationship</label>
+                        <div class="custom-select-wrapper">
+                            <select id="reporterRelationship" name="reporterRelationship">
+                                <option value="">Select...</option> <option value="Self">Self</option> <option value="Spouse">Spouse</option> <option value="Parent">Parent</option> <option value="Health Provider">Health Provider</option> <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="serious">Serious?</label>
+                        <div class="custom-select-wrapper">
+                             <select id="serious" name="serious">
+                                <option value="">Select...</option> <option value="Y">Yes</option> <option value="N">No</option>
+                            </select>
+                        </div>
+                    </div>
+                 </div>
+            </div>
+
+            <!-- Internal Actions & Disposition -->
+            <div class="section-card">
+                <h2 class="section-title">Internal Actions & Disposition</h2>
+                <div class="form-grid">
+                     <div class="full-width">
+                        <label for="correctiveActionTaken">Corrective Action Taken</label>
+                        <div class="custom-select-wrapper">
+                            <select id="correctiveActionTaken" name="correctiveActionTaken">
+                                <option value="">Select...</option> <option value="Refunded">Refunded</option> <option value="Replaced">Replaced</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="triggerAeForm">Trigger for AE Form?</label>
+                        <div class="custom-select-wrapper">
+                             <select id="triggerAeForm" name="triggerAeForm">
+                                <option value="">Select...</option> <option value="Y">Yes</option> <option value="N">No</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="aeFormCompletedBy">AE Form Completed By</label>
+                        <div class="input-group">
+                            <span class="input-icon"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" /></svg></span>
+                            <input type="text" id="aeFormCompletedBy" name="aeFormCompletedBy">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="dateFormCompleted">Date Form Completed</label>
+                        <div class="input-group">
+                           <input type="date" id="dateFormCompleted" name="dateFormCompleted">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="followUpRequired">Follow-up Required?</label>
+                        <div class="custom-select-wrapper">
+                             <select id="followUpRequired" name="followUpRequired">
+                                <option value="">Select...</option> <option value="Y">Yes</option> <option value="N">No</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="followUpDate">Follow-up Date</label>
+                        <div class="input-group">
+                           <input type="date" id="followUpDate" name="followUpDate">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="reportedToFda">Reported to FDA?</label>
+                        <div class="custom-select-wrapper">
+                             <select id="reportedToFda" name="reportedToFda">
+                                <option value="">Select...</option> <option value="Y">Yes</option> <option value="N">No</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="dateReportedToFda">Date Reported to FDA</label>
+                        <div class="input-group">
+                           <input type="date" id="dateReportedToFda" name="dateReportedToFda">
+                        </div>
+                    </div>
+                     <div class="full-width">
+                        <label for="finalDisposition">Final Disposition</label>
+                        <div class="custom-select-wrapper">
+                            <select id="finalDisposition" name="finalDisposition">
+                                <option value="">Select...</option> <option value="Open">Open</option> <option value="Pending Investigation">Pending Investigation</option> <option value="Closed">Closed</option> <option value="Reported">Reported</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="full-width">
+                        <label for="dispositionNotes">Disposition Notes</label>
+                        <div class="input-group">
+                           <textarea id="dispositionNotes" name="dispositionNotes" rows="3"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Closure -->
+            <div class="section-card">
+                <h2 class="section-title">Closure</h2>
+                <div class="form-grid">
+                    <div>
+                        <label for="investigatorName">Investigator Name</label>
+                        <div class="input-group">
+                            <span class="input-icon"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" /></svg></span>
+                            <input type="text" id="investigatorName" name="investigatorName">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="dateClosed">Date Closed</label>
+                        <div class="input-group">
+                           <input type="date" id="dateClosed" name="dateClosed">
+                        </div>
+                    </div>
+                    <div class="full-width">
+                        <label for="additionalNotes">Additional Notes</label>
+                        <div class="input-group">
+                           <textarea id="additionalNotes" name="additionalNotes" rows="4"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="mt-8">
+                <button type="submit" class="submit-btn">
+                    <span id="submit-text">Submit Record</span>
+                    <span id="submit-spinner" style="display:none;">Submitting...</span>
+                </button>
+            </div>
+        </form>
+        
+        <div id="success-message">Record added successfully! The form has been reset.</div>
+        <div id="error-message"></div>
+    </div>
+
+    <script>
+        // --- Custom Select Dropdown Logic ---
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.custom-select-wrapper').forEach(setupCustomSelect);
+            loadNextComplaintId(); // <-- Fetch the ID when the page loads
+        });
+
+        function setupCustomSelect(wrapper) {
+            const selectElement = wrapper.querySelector('select');
+            const trigger = document.createElement('div');
+            trigger.className = 'custom-select-trigger';
+            
+            const selectedDisplay = document.createElement('span');
+            selectedDisplay.className = 'custom-select-text';
+            trigger.appendChild(selectedDisplay);
+            
+            const arrow = document.createElement('span');
+            arrow.innerHTML = `<svg class="custom-select-arrow" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>`;
+            trigger.appendChild(arrow);
+            
+            const optionsContainer = document.createElement('div');
+            optionsContainer.className = 'custom-options';
+
+            Array.from(selectElement.options).forEach((option) => {
+                const optionEl = document.createElement('div');
+                optionEl.className = 'custom-option';
+                optionEl.textContent = option.textContent;
+                optionEl.dataset.value = option.value;
+                
+                optionEl.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    selectElement.value = option.value;
+                    updateSelected(option.textContent, false);
+                    document.querySelectorAll('.custom-option').forEach(opt => opt.classList.remove('selected'));
+                    optionEl.classList.add('selected');
+                    wrapper.classList.remove('open');
+                    selectElement.dispatchEvent(new Event('change'));
+                });
+                optionsContainer.appendChild(optionEl);
+            });
+
+            function updateSelected(text, isPlaceholder) {
+                selectedDisplay.textContent = text;
+                selectedDisplay.classList.toggle('custom-select-placeholder', isPlaceholder);
+            }
+            
+            updateSelected(selectElement.options[selectElement.selectedIndex].textContent, selectElement.value === "");
+
+            trigger.addEventListener('click', (e) => {
+                e.stopPropagation();
+                closeAllSelects(wrapper);
+                wrapper.classList.toggle('open');
+            });
+
+            wrapper.appendChild(trigger);
+            wrapper.appendChild(optionsContainer);
+        }
+
+        function closeAllSelects(exceptThisOne) {
+            document.querySelectorAll('.custom-select-wrapper').forEach(wrapper => {
+                if (wrapper !== exceptThisOne) {
+                    wrapper.classList.remove('open');
+                }
+            });
+        }
+
+        document.addEventListener('click', closeAllSelects);
+
+        // --- Form Submission & ID Logic ---
+        const SCRIPT_URL = "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE";
+        const form = document.getElementById('complaintLogForm');
+        const complaintIdInput = document.getElementById('complaintId');
+        const successMessage = document.getElementById('success-message');
+        const errorMessage = document.getElementById('error-message');
+        const submitButton = form.querySelector('.submit-btn');
+        const submitText = document.getElementById('submit-text');
+        const submitSpinner = document.getElementById('submit-spinner');
+
+        function loadNextComplaintId() {
+            if (SCRIPT_URL === "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE") {
+                complaintIdInput.value = "Configure Script URL first";
+                return;
+            }
+            // This function in your Google Apps Script will return the next ID.
+            fetch(SCRIPT_URL + "?action=getNextId")
+                .then(response => response.json())
+                .then(data => {
+                    if(data.nextId) {
+                        complaintIdInput.value = data.nextId;
+                    } else {
+                        complaintIdInput.value = "Error loading ID";
+                    }
+                })
+                .catch(err => {
+                    console.error("Error fetching next ID:", err);
+                    complaintIdInput.value = "Error loading ID";
+                });
+        }
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            submitButton.disabled = true;
+            submitText.style.display = 'none';
+            submitSpinner.style.display = 'inline';
+            successMessage.style.display = 'none';
+            errorMessage.style.display = 'none';
+
+            const formData = new FormData(form);
+            const data = {};
+            formData.forEach((value, key) => (data[key] = value));
+
+            if (SCRIPT_URL === "https://script.google.com/macros/s/AKfycbyY4lFIkrW0zyNSKivWViv8fqBTLN0vAvYLdBleoMCptiFXffQKwDEefcbiol5aKU49/exec") {
+                showError("Configuration Error: Please set your Google Apps Script Web App URL in the HTML file to connect to Google Sheets.");
+                submitButton.disabled = false;
+                submitText.style.display = 'inline';
+                submitSpinner.style.display = 'none';
+                return;
+            }
+
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                mode: 'cors',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(res => {
+                if (res.result === "success") {
+                    form.reset();
+                    document.querySelectorAll('.custom-select-wrapper').forEach(wrapper => {
+                        const select = wrapper.querySelector('select');
+                        const text = wrapper.querySelector('.custom-select-text');
+                        text.textContent = select.options[0].textContent;
+                        text.classList.add('custom-select-placeholder');
+                        wrapper.querySelectorAll('.custom-option').forEach(opt => opt.classList.remove('selected'));
+                    });
+                    successMessage.style.display = 'block';
+                    loadNextComplaintId(); // Fetch the next ID for the new form
+                    window.scrollTo(0, document.body.scrollHeight);
+                } else {
+                    throw new Error(res.message || 'An unknown error occurred.');
+                }
+            })
+            .catch(err => showError('Error: ' + err.message))
+            .finally(() => {
+                submitButton.disabled = false;
+                submitText.style.display = 'inline';
+                submitSpinner.style.display = 'none';
+            });
+        });
+        
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            window.scrollTo(0, document.body.scrollHeight);
+        }
+    </script>
+</body>
+</html>
